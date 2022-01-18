@@ -98,6 +98,9 @@ message ServerToAgent {
 
         // The server asks the agent to report addon statuses.
         ReportAddonStatus     = 0x00000002;
+
+        // The server asks the agent to restart.
+        RequestRestart        = 0x00000004;
     }
     // Bit flags as defined by Flags bit masks.
     Flags flags = 7;
@@ -508,6 +511,8 @@ enum AgentCapabilities {
     // The Agent can accept connections settings for other destinations via
     // ConnectionSettingsOffers.other_connections field.
     AcceptsOtherConnectionSettings = 0x00000800;
+    // The Agent can accept restart requests.
+    AcceptsRestartRequests         = 0x00001000;
 
     // Add new capabilities here, continuing with the least significant unused bit.
 }

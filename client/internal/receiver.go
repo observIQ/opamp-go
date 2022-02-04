@@ -61,11 +61,16 @@ func (r *Receiver) receiveMessage(msg *protobufs.ServerToAgent) error {
 
 func (r *Receiver) processReceivedMessage(ctx context.Context, msg *protobufs.ServerToAgent) {
 	if r.callbacks != nil {
+		// If a command message exists, other messages will be ignored
+		if msg.Command != nil {
+			r.rcvCommand(msg.Command)
+			return
+		}
+
 		reportStatus := r.rcvRemoteConfig(ctx, msg.RemoteConfig, msg.Flags)
 
 		r.rcvConnectionSettings(ctx, msg.ConnectionSettings)
 		r.rcvAddonsAvailable(msg.AddonsAvailable)
-		r.rcvRestartRequest(msg.Flags)
 
 		if reportStatus {
 			r.sender.ScheduleSend()
@@ -170,8 +175,8 @@ func (r *Receiver) rcvAddonsAvailable(addons *protobufs.AddonsAvailable) {
 	// TODO: implement this.
 }
 
-func (r *Receiver) rcvRestartRequest(flags protobufs.ServerToAgent_Flags) {
-	if flags&protobufs.ServerToAgent_RequestRestart != 0 {
-		r.callbacks.OnRestartRequested()
+func (r *Receiver) rcvCommand(command *protobufs.ServerToAgentCommand) {
+	if command != nil {
+		r.callbacks.OnCommand(command)
 	}
 }

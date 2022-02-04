@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,33 +19,97 @@ func (logger TestLogger) Debugf(format string, v ...interface{}) {
 	logger.Logf(format, v...)
 }
 
-func TestRequestRestart(t *testing.T) {
-	called := false
+type commandAction int
 
-	callbacks := types.CallbacksStruct{
-		OnRestartRequestedFunc: func() error {
-			called = true
-			return nil
+const (
+	none commandAction = iota
+	restart
+	shutdown
+	unknown
+)
+
+func TestServerToAgentCommand(t *testing.T) {
+
+	tests := []struct {
+		command *protobufs.ServerToAgentCommand
+		action  commandAction
+		message string
+	}{
+		{
+			command: nil,
+			action:  none,
+			message: "No command should result in no action",
+		},
+		{
+			command: &protobufs.ServerToAgentCommand{
+				Type: protobufs.ServerToAgentCommand_Restart,
+			},
+			action:  restart,
+			message: "A Restart command should result in a restart",
+		},
+		{
+			command: &protobufs.ServerToAgentCommand{
+				Type: protobufs.ServerToAgentCommand_Shutdown,
+			},
+			action:  shutdown,
+			message: "A Shutdown command should result in a shutdown",
+		},
+		{
+			command: &protobufs.ServerToAgentCommand{
+				Type: -1,
+			},
+			action:  unknown,
+			message: "An unknown command is still passed to the OnCommand callback",
 		},
 	}
-	receiver := NewReceiver(TestLogger{t}, callbacks, nil, nil)
-	receiver.processReceivedMessage(context.Background(), &protobufs.ServerToAgent{
-		Flags: protobufs.ServerToAgent_RequestRestart,
-	})
-	assert.Equal(t, true, called, "requestRestart flag should trigger the OnRestartRequested callback")
+
+	for i, test := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			action := none
+
+			callbacks := types.CallbacksStruct{
+				OnCommandFunc: func(command *protobufs.ServerToAgentCommand) error {
+					switch command.Type {
+					case protobufs.ServerToAgentCommand_Restart:
+						action = restart
+					case protobufs.ServerToAgentCommand_Shutdown:
+						action = shutdown
+					default:
+						action = unknown
+					}
+					return nil
+				},
+			}
+			receiver := NewReceiver(TestLogger{t}, callbacks, nil, nil)
+			receiver.processReceivedMessage(context.Background(), &protobufs.ServerToAgent{
+				Command: test.command,
+			})
+			assert.Equal(t, test.action, action, test.message)
+		})
+	}
 }
 
-func TestNoRequestRestart(t *testing.T) {
-	called := false
+func TestServerToAgentCommandExclusive(t *testing.T) {
+	calledCommand := false
+	calledRemoteConfig := false
+
 	callbacks := types.CallbacksStruct{
-		OnRestartRequestedFunc: func() error {
-			called = true
+		OnCommandFunc: func(command *protobufs.ServerToAgentCommand) error {
+			calledCommand = true
 			return nil
+		},
+		OnRemoteConfigFunc: func(ctx context.Context, remoteConfig *protobufs.AgentRemoteConfig) (effectiveConfig *protobufs.EffectiveConfig, configChanged bool, err error) {
+			calledRemoteConfig = true
+			return nil, false, nil
 		},
 	}
 	receiver := NewReceiver(TestLogger{t}, callbacks, nil, nil)
 	receiver.processReceivedMessage(context.Background(), &protobufs.ServerToAgent{
-		Flags: 0,
+		Command: &protobufs.ServerToAgentCommand{
+			Type: protobufs.ServerToAgentCommand_Restart,
+		},
+		RemoteConfig: &protobufs.AgentRemoteConfig{},
 	})
-	assert.Equal(t, false, called, "without RequestRestart flag, do not trigger the OnRestartRequested callback")
+	assert.Equal(t, true, calledCommand, "OnCommand should be called when a Command is specified")
+	assert.Equal(t, false, calledRemoteConfig, "OnRemoteConfig should not be called when a Command is specified")
 }

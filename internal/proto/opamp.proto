@@ -98,9 +98,6 @@ message ServerToAgent {
 
         // The server asks the agent to report addon statuses.
         ReportAddonStatus     = 0x00000002;
-
-        // The server asks the agent to restart.
-        RequestRestart        = 0x00000004;
     }
     // Bit flags as defined by Flags bit masks.
     Flags flags = 7;
@@ -114,6 +111,11 @@ message ServerToAgent {
     // be omitted in subsequent ServerToAgent messages by setting it to
     // UnspecifiedServerCapability value.
     ServerCapabilities capabilities = 8;
+
+    // Allows the Server to instruct the agent to perform a command, e.g. RESTART. This field should not be specified
+    // with fields other than instance_uid and capabilities. If specified, other fields will be ignored and the command
+    // will be performed.
+    ServerToAgentCommand command = 9;
 }
 
 enum ServerCapabilities {
@@ -407,6 +409,22 @@ message AgentPackageAvailable {
     DownloadableFile file = 2;
 }
 
+// ServerToAgentCommand is sent from the server to the agent to request that the agent
+// perform a command.
+message ServerToAgentCommand {
+    enum CommandType {
+        // The agent should restart. This request will be ignored if the agent does not
+        // support restart.
+        Restart = 0;
+
+        // The agent should shutdown. This request will be ignored if the agent does not
+        // support shutdown. Shutdown is permanent and the agent will no longer be running
+        // or connected to the management server.
+        Shutdown = 1;
+    }
+    CommandType type = 1;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Status reporting
 
@@ -513,6 +531,8 @@ enum AgentCapabilities {
     AcceptsOtherConnectionSettings = 0x00000800;
     // The Agent can accept restart requests.
     AcceptsRestartRequests         = 0x00001000;
+    // The Agent can accept shutdown requests.
+    AcceptsShutdownRequests        = 0x00002000;
 
     // Add new capabilities here, continuing with the least significant unused bit.
 }

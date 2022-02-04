@@ -129,8 +129,8 @@ type Callbacks interface {
 	// syncer can be used to initiate syncing the package from the server.
 	OnAgentPackageAvailable(addons *protobufs.AgentPackageAvailable, syncer AgentPackageSyncer) error
 
-	// OnRestartRequested is called when the server requests a restart of the connected agent.
-	OnRestartRequested() error
+	// OnCommand is called when the server requests that the connected agent perform a command.
+	OnCommand(command *protobufs.ServerToAgentCommand) error
 
 	// For all methods that accept a context parameter the caller may cancel the
 	// context if processing takes too long. In that case the method should return
@@ -170,7 +170,7 @@ type CallbacksStruct struct {
 	OnAddonsAvailableFunc       func(ctx context.Context, addons *protobufs.AddonsAvailable, syncer AddonSyncer) error
 	OnAgentPackageAvailableFunc func(addons *protobufs.AgentPackageAvailable, syncer AgentPackageSyncer) error
 
-	OnRestartRequestedFunc func() error
+	OnCommandFunc func(command *protobufs.ServerToAgentCommand) error
 }
 
 var _ Callbacks = (*CallbacksStruct)(nil)
@@ -257,9 +257,9 @@ func (c CallbacksStruct) OnAgentPackageAvailable(
 	return nil
 }
 
-func (c CallbacksStruct) OnRestartRequested() error {
-	if c.OnRestartRequestedFunc != nil {
-		return c.OnRestartRequestedFunc()
+func (c CallbacksStruct) OnCommand(command *protobufs.ServerToAgentCommand) error {
+	if c.OnCommandFunc != nil {
+		return c.OnCommandFunc(command)
 	}
 	return nil
 }

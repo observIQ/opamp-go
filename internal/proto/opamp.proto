@@ -416,11 +416,6 @@ message ServerToAgentCommand {
         // The agent should restart. This request will be ignored if the agent does not
         // support restart.
         Restart = 0;
-
-        // The agent should shutdown. This request will be ignored if the agent does not
-        // support shutdown. Shutdown is permanent and the agent will no longer be running
-        // or connected to the management server.
-        Shutdown = 1;
     }
     CommandType type = 1;
 }

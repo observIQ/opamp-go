@@ -115,7 +115,7 @@ message ServerToAgent {
     // Allows the Server to instruct the agent to perform a command, e.g. RESTART. This field should not be specified
     // with fields other than instance_uid and capabilities. If specified, other fields will be ignored and the command
     // will be performed.
-    ServerToAgentCommand command = 9;
+    ServerToAgentCommand command = 10;
 }
 
 enum ServerCapabilities {

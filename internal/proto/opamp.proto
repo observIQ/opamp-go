@@ -16,7 +16,7 @@
 
 syntax = "proto3";
 
-package opamp.proto;
+package opamp020.proto;
 
 import "anyvalue.proto";
 

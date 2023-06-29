@@ -20,7 +20,7 @@
 
 syntax = "proto3";
 
-package opamp020.proto;
+package opamp.observiq.proto;
 
 option go_package = "github.com/observiq/opamp-go/protobufs";
 

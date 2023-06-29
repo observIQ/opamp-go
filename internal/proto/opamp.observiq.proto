@@ -18,7 +18,7 @@ syntax = "proto3";
 
 package opamp.observiq.proto;
 
-import "anyvalue.proto";
+import "anyvalue.observiq.proto";
 
 option go_package = "github.com/observiq/opamp-go/protobufs";
 

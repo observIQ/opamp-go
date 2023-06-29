@@ -3,8 +3,8 @@ package server
 import (
 	"net/http"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
-	"github.com/open-telemetry/opamp-go/server/types"
+	"github.com/observiq/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/server/types"
 )
 
 type CallbacksStruct struct {

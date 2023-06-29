@@ -3,7 +3,7 @@ package types
 import (
 	"net/http"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 // ConnectionResponse is the return type of the OnConnecting callback.

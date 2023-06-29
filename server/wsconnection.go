@@ -7,8 +7,8 @@ import (
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
-	"github.com/open-telemetry/opamp-go/server/types"
+	"github.com/observiq/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/server/types"
 )
 
 // wsConnection represents a persistent OpAMP connection over a WebSocket.

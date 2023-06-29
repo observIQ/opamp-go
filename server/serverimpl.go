@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/internal"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/internal"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 var (

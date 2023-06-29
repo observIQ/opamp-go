@@ -3,7 +3,7 @@ package internal
 import (
 	"errors"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 // Sender is an interface of the sending portion of OpAMP protocol that stores

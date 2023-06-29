@@ -4,10 +4,10 @@ import (
 	"context"
 	"log"
 
-	"github.com/open-telemetry/opamp-go/internal/examples/server/data"
-	"github.com/open-telemetry/opamp-go/protobufs"
-	"github.com/open-telemetry/opamp-go/server"
-	"github.com/open-telemetry/opamp-go/server/types"
+	"github.com/observiq/opamp-go/internal/examples/server/data"
+	"github.com/observiq/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/server"
+	"github.com/observiq/opamp-go/server/types"
 )
 
 type Server struct {

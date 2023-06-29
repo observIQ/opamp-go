@@ -1,11 +1,11 @@
-module github.com/open-telemetry/opamp-go/internal/examples
+module github.com/observiq/opamp-go/internal/examples
 
 go 1.17
 
 require (
 	github.com/knadh/koanf v1.3.3
 	github.com/oklog/ulid/v2 v2.0.2
-	github.com/open-telemetry/opamp-go v0.1.0
+	github.com/observiq/opamp-go v0.1.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	go.opentelemetry.io/otel v1.3.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.26.0
@@ -48,4 +48,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
 
-replace github.com/open-telemetry/opamp-go => ../../
+replace github.com/observiq/opamp-go => ../../

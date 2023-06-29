@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/gorilla/websocket"
-	"github.com/open-telemetry/opamp-go/client/internal"
-	"github.com/open-telemetry/opamp-go/client/types"
+	"github.com/observiq/opamp-go/client/internal"
+	"github.com/observiq/opamp-go/client/types"
 	"github.com/stretchr/testify/assert"
 )
 

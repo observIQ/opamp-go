@@ -3,7 +3,7 @@ package data
 import (
 	"bytes"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 func isEqualAnyValue(v1, v2 *protobufs.AnyValue) bool {

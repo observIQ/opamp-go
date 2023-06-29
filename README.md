@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://goreportcard.com/report/github.com/open-telemetry/opamp-go">
-    <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/open-telemetry/opamp-go?style=for-the-badge"></a>
+  <a href="https://goreportcard.com/report/github.com/observiq/opamp-go">
+    <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/observiq/opamp-go?style=for-the-badge"></a>
   <a href="https://codecov.io/gh/open-telemetry/opamp-go/branch/main/">
     <img alt="Codecov Status" src="https://img.shields.io/codecov/c/github/open-telemetry/opamp-go?style=for-the-badge"></a>
-  <a href="https://github.com/open-telemetry/opamp-go/releases">
+  <a href="https://github.com/observiq/opamp-go/releases">
     <img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/open-telemetry/opamp-go?include_prereleases&style=for-the-badge"></a>
 </p>
 
@@ -50,6 +50,6 @@ Learn more about roles in the [community repository](https://github.com/open-tel
 
 Thanks to all the people who already contributed!
 
-<a href="https://github.com/open-telemetry/opamp-go/graphs/contributors">
+<a href="https://github.com/observiq/opamp-go/graphs/contributors">
   <img src="https://contributors-img.web.app/image?repo=open-telemetry/opamp-go" />
 </a>

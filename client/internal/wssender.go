@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 // WSSender implements the WebSocket client's sending portion of OpAMP protocol.

@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
-	"github.com/open-telemetry/opamp-go/client/internal"
-	"github.com/open-telemetry/opamp-go/client/types"
-	sharedinternal "github.com/open-telemetry/opamp-go/internal"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/internal"
+	"github.com/observiq/opamp-go/client/types"
+	sharedinternal "github.com/observiq/opamp-go/internal"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 // httpClient is an OpAMP Client implementation for plain HTTP transport.

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/protobufs"
 	"google.golang.org/protobuf/proto"
 )
 

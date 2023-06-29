@@ -8,8 +8,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/open-telemetry/opamp-go/internal/examples/server/data"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/internal/examples/server/data"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 var htmlDir string

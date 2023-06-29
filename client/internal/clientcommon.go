@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/protobufs"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/internal/examples/supervisor/supervisor/config"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/internal/examples/supervisor/supervisor/config"
 )
 
 // Commander can start/stop/restat the Agent executable and also watch for a signal

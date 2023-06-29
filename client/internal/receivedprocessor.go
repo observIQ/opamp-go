@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 // receivedProcessor handles the processing of messages received from the Server.

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
-	"github.com/open-telemetry/opamp-go/server/types"
+	"github.com/observiq/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/server/types"
 )
 
 var errInvalidHTTPConnection = errors.New("cannot Send() over HTTP connection")

@@ -11,10 +11,10 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/gorilla/websocket"
 
-	"github.com/open-telemetry/opamp-go/client/internal"
-	"github.com/open-telemetry/opamp-go/client/types"
-	sharedinternal "github.com/open-telemetry/opamp-go/internal"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/internal"
+	"github.com/observiq/opamp-go/client/types"
+	sharedinternal "github.com/observiq/opamp-go/internal"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 // wsClient is an OpAMP Client implementation for WebSocket transport.
@@ -186,9 +186,10 @@ func (c *wsClient) ensureConnected(ctx context.Context) error {
 }
 
 // runOneCycle performs the following actions:
-//   1. connect (try until succeeds).
-//   2. send first status report.
-//   3. receive and process messages until error happens.
+//  1. connect (try until succeeds).
+//  2. send first status report.
+//  3. receive and process messages until error happens.
+//
 // If it encounters an error it closes the connection and returns.
 // Will stop and return if Stop() is called (ctx is cancelled, isStopping is set).
 func (c *wsClient) runOneCycle(ctx context.Context) {

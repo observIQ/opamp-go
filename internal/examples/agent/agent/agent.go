@@ -14,9 +14,9 @@ import (
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/oklog/ulid/v2"
 
-	"github.com/open-telemetry/opamp-go/client"
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 const localConfig = `

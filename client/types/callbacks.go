@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 type MessageData struct {

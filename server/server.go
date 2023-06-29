@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"net/http"
 
-	"github.com/open-telemetry/opamp-go/server/types"
+	"github.com/observiq/opamp-go/server/types"
 )
 
 type Settings struct {

@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/open-telemetry/opamp-go/client/internal"
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/internal/testhelpers"
-	"github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/observiq/opamp-go/client/internal"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/internal/testhelpers"
+	"github.com/observiq/opamp-go/protobufs"
 )
 
 const retryAfterHTTPHeader = "Retry-After"

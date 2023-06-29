@@ -14,12 +14,12 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/observiq/opamp-go/client"
+	"github.com/observiq/opamp-go/client/types"
+	"github.com/observiq/opamp-go/internal/examples/supervisor/supervisor/commander"
+	"github.com/observiq/opamp-go/internal/examples/supervisor/supervisor/config"
+	"github.com/observiq/opamp-go/protobufs"
 	"github.com/oklog/ulid/v2"
-	"github.com/open-telemetry/opamp-go/client"
-	"github.com/open-telemetry/opamp-go/client/types"
-	"github.com/open-telemetry/opamp-go/internal/examples/supervisor/supervisor/commander"
-	"github.com/open-telemetry/opamp-go/internal/examples/supervisor/supervisor/config"
-	"github.com/open-telemetry/opamp-go/protobufs"
 )
 
 // This Supervisor is developed specifically for OpenTelemetry Collector.
@@ -256,7 +256,7 @@ receivers:
         - job_name: 'otel-collector'
           scrape_interval: 10s
           static_configs:
-            - targets: ['0.0.0.0:8888']  
+            - targets: ['0.0.0.0:8888']
 exporters:
   otlphttp/own_metrics:
     endpoint: %s

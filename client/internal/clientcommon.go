@@ -61,7 +61,7 @@ type Agent struct {
 
 // NewClientCommon creates a new ClientCommon.
 func NewClientCommon(logger types.Logger) ClientCommon {
-	return ClientCommon{Logger: logger, stoppedSignal: make(chan struct{}, 1)}
+	return ClientCommon{Logger: logger, stoppedSignal: make(chan struct{}, 1), Agents: make(map[types.InstanceUid]*Agent)}
 }
 
 // PrepareStart prepares the client state for the next Start() call.

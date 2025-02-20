@@ -75,7 +75,13 @@ func (c *wsClient) PrepareStart(ctx context.Context, settings types.StartSetting
 		// sender is shared between this client and common client
 		sender := internal.NewSender(c.common.Logger)
 		c.senders[agent.InstanceUid] = sender
-		c.common.Agents[agent.InstanceUid].Sender = sender
+
+		// Initialize new agent
+		a := &internal.Agent{}
+		a.Sender = sender
+		c.common.Agents[agent.InstanceUid] = a
+
+		// Set agent description and health
 		c.common.SetAgentDescription(agent.InstanceUid, agent.AgentDescription)
 		c.common.SetHealth(agent.InstanceUid, &protobufs.ComponentHealth{Healthy: false})
 	}

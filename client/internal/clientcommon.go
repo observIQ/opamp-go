@@ -80,7 +80,7 @@ func (c *ClientCommon) PrepareStart(
 			return fmt.Errorf("Agent %s not found", a.InstanceUid)
 		}
 
-		agent.Capabilities = agent.Capabilities
+		agent.Capabilities = a.Capabilities
 		agent.Capabilities |= protobufs.AgentCapabilities_AgentCapabilities_ReportsStatus
 
 		if agent.ClientSyncedState.AgentDescription() == nil {

@@ -115,8 +115,8 @@ func (c *ClientCommon) PrepareStart(
 				return err
 			}
 		} else {
-			if agent.Capabilities&protobufs.AgentCapabilities_AgentCapabilities_AcceptsPackages == 0 ||
-				agent.Capabilities&protobufs.AgentCapabilities_AgentCapabilities_ReportsPackageStatuses == 0 {
+			if agent.Capabilities&protobufs.AgentCapabilities_AgentCapabilities_AcceptsPackages != 0 ||
+				agent.Capabilities&protobufs.AgentCapabilities_AgentCapabilities_ReportsPackageStatuses != 0 {
 				return ErrAcceptsPackagesNotSet
 			}
 		}

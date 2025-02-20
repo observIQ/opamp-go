@@ -11,8 +11,8 @@ import (
 	"github.com/open-telemetry/opamp-go/protobufs"
 )
 
-// wsReceiver implements the WebSocket client's receiving portion of OpAMP protocol.
-type wsReceiver struct {
+// WSReceiver implements the WebSocket client's receiving portion of OpAMP protocol.
+type WSReceiver struct {
 	conn      *websocket.Conn
 	logger    types.Logger
 	sender    *WSSender
@@ -34,8 +34,8 @@ func NewWSReceiver(
 	packagesStateProvider types.PackagesStateProvider,
 	capabilities protobufs.AgentCapabilities,
 	packageSyncMutex *sync.Mutex,
-) *wsReceiver {
-	w := &wsReceiver{
+) *WSReceiver {
+	w := &WSReceiver{
 		conn:      conn,
 		logger:    logger,
 		sender:    sender,
@@ -48,18 +48,18 @@ func NewWSReceiver(
 }
 
 // Start starts the receiver loop.
-func (r *wsReceiver) Start(ctx context.Context) {
+func (r *WSReceiver) Start(ctx context.Context) {
 	go r.ReceiverLoop(ctx)
 }
 
 // IsStopped returns a channel that's closed when the receiver is stopped.
-func (r *wsReceiver) IsStopped() <-chan struct{} {
+func (r *WSReceiver) IsStopped() <-chan struct{} {
 	return r.stopped
 }
 
 // ReceiverLoop runs the receiver loop.
 // To stop the receiver cancel the context and close the websocket connection
-func (r *wsReceiver) ReceiverLoop(ctx context.Context) {
+func (r *WSReceiver) ReceiverLoop(ctx context.Context) {
 	type receivedMessage struct {
 		message *protobufs.ServerToAgent
 		err     error
@@ -97,7 +97,7 @@ func (r *wsReceiver) ReceiverLoop(ctx context.Context) {
 	}
 }
 
-func (r *wsReceiver) receiveMessage(msg *protobufs.ServerToAgent) error {
+func (r *WSReceiver) receiveMessage(msg *protobufs.ServerToAgent) error {
 	_, bytes, err := r.conn.ReadMessage()
 	if err != nil {
 		return err

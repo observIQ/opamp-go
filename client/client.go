@@ -9,6 +9,7 @@ import (
 
 // OpAMPClient is an interface representing the client side of the OpAMP protocol.
 type OpAMPClient interface {
+	PrepareStart(ctx context.Context, settings types.StartSettings) error
 
 	// Start the client and begin attempts to connect to the Server. Once connection
 	// is established the client will attempt to maintain it by reconnecting if
@@ -51,10 +52,10 @@ type OpAMPClient interface {
 	// May be also called from OnMessage handler.
 	//
 	// nil values are not allowed and will return an error.
-	SetAgentDescription(descr *protobufs.AgentDescription) error
+	SetAgentDescription(agentId types.InstanceUid, descr *protobufs.AgentDescription) error
 
 	// AgentDescription returns the last value successfully set by SetAgentDescription().
-	AgentDescription() *protobufs.AgentDescription
+	AgentDescription(agentId types.InstanceUid) *protobufs.AgentDescription
 
 	// SetHealth sets the health status of the Agent. The health will be included
 	// in the next status report sent to the Server. MAY be called before or after Start().
@@ -62,24 +63,24 @@ type OpAMPClient interface {
 	// May be also called from OnMessage handler.
 	//
 	// nil health parameter is not allowed and will return an error.
-	SetHealth(health *protobufs.ComponentHealth) error
+	SetHealth(agentId types.InstanceUid, health *protobufs.ComponentHealth) error
 
 	// UpdateEffectiveConfig fetches the current local effective config using
 	// GetEffectiveConfig callback and sends it to the Server.
 	// May be called anytime after Start(), including from OnMessage handler.
-	UpdateEffectiveConfig(ctx context.Context) error
+	UpdateEffectiveConfig(agentId types.InstanceUid, ctx context.Context) error
 
 	// SetRemoteConfigStatus sets the current RemoteConfigStatus.
 	// LastRemoteConfigHash field must be non-nil.
 	// May be called anytime after Start(), including from OnMessage handler.
 	// nil values are not allowed and will return an error.
-	SetRemoteConfigStatus(status *protobufs.RemoteConfigStatus) error
+	SetRemoteConfigStatus(agentId types.InstanceUid, status *protobufs.RemoteConfigStatus) error
 
 	// SetPackageStatuses sets the current PackageStatuses.
 	// ServerProvidedAllPackagesHash must be non-nil.
 	// May be called anytime after Start(), including from OnMessage handler.
 	// nil values are not allowed and will return an error.
-	SetPackageStatuses(statuses *protobufs.PackageStatuses) error
+	SetPackageStatuses(agentId types.InstanceUid, statuses *protobufs.PackageStatuses) error
 
 	// RequestConnectionSettings sets a ConnectionSettingsRequest. The ConnectionSettingsRequest
 	// will be included in the next AgentToServer message sent to the Server.
@@ -88,7 +89,7 @@ type OpAMPClient interface {
 	// AcceptsConnectionSettingsRequest capability.
 	// May be called before or after Start().
 	// May be also called from OnMessage handler.
-	RequestConnectionSettings(request *protobufs.ConnectionSettingsRequest) error
+	RequestConnectionSettings(agentId types.InstanceUid, request *protobufs.ConnectionSettingsRequest) error
 
 	// SetCustomCapabilities modifies the set of customCapabilities supported by the client.
 	// The new customCapabilities will be sent with the next message to the server. If
@@ -105,7 +106,7 @@ type OpAMPClient interface {
 	// See
 	// https://github.com/open-telemetry/opamp-spec/blob/main/specification.md#customcapabilities
 	// for more details.
-	SetCustomCapabilities(customCapabilities *protobufs.CustomCapabilities) error
+	SetCustomCapabilities(agentId types.InstanceUid, customCapabilities *protobufs.CustomCapabilities) error
 
 	// SetFlags modifies the set of flags supported by the client.
 	// May be called before or after Start(), including from OnMessage handler.
@@ -115,7 +116,7 @@ type OpAMPClient interface {
 	// See
 	// https://github.com/open-telemetry/opamp-spec/blob/main/specification.md#agenttoserverflags
 	// for more details.
-	SetFlags(flags protobufs.AgentToServerFlags)
+	SetFlags(agentId types.InstanceUid, flags protobufs.AgentToServerFlags)
 
 	// SendCustomMessage sends the custom message to the Server. May be called anytime after
 	// Start(), including from OnMessage handler.
@@ -133,7 +134,7 @@ type OpAMPClient interface {
 	//
 	// If no error is returned, the channel returned will be closed after the specified
 	// message is sent.
-	SendCustomMessage(message *protobufs.CustomMessage) (messageSendingChannel chan struct{}, err error)
+	SendCustomMessage(agentId types.InstanceUid, message *protobufs.CustomMessage) (messageSendingChannel chan struct{}, err error)
 
 	// SetAvailableComponents modifies the set of components that are available for configuration
 	// on the agent.
@@ -152,5 +153,5 @@ type OpAMPClient interface {
 	//
 	// This method is subject to agent status compression - if components is not
 	// different from the cached agent state, this method is a no-op.
-	SetAvailableComponents(components *protobufs.AvailableComponents) error
+	SetAvailableComponents(agentId types.InstanceUid, components *protobufs.AvailableComponents) error
 }

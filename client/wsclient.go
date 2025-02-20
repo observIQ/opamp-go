@@ -39,7 +39,7 @@ type wsClient struct {
 	connMutex sync.RWMutex
 
 	// The sender is responsible for sending portion of the OpAMP protocol.
-	sender *internal.WSSender
+	senders map[types.InstanceUid]*internal.WSSender
 
 	// last non-nil internal error that was encountered in the conn retry loop,
 	// currently used only for testing.
@@ -62,20 +62,27 @@ func NewWebSocket(logger types.Logger) *wsClient {
 		logger = &sharedinternal.NopLogger{}
 	}
 
-	sender := internal.NewSender(logger)
 	w := &wsClient{
-		common:              internal.NewClientCommon(logger, sender),
-		sender:              sender,
+		common:              internal.NewClientCommon(logger),
 		connShutdownTimeout: defaultShutdownTimeout,
 	}
 	return w
 }
 
-func (c *wsClient) Start(ctx context.Context, settings types.StartSettings) error {
-	if err := c.common.PrepareStart(ctx, settings); err != nil {
-		return err
+func (c *wsClient) PrepareStart(ctx context.Context, settings types.StartSettings) error {
+	for _, agent := range settings.Agents {
+		// sender is shared between this client and common client
+		sender := internal.NewSender(c.common.Logger)
+		c.senders[agent.InstanceUid] = sender
+		c.common.Agents[agent.InstanceUid].Sender = sender
+		c.common.SetAgentDescription(agent.InstanceUid, agent.AgentDescription)
+		c.common.SetHealth(agent.InstanceUid, &protobufs.ComponentHealth{Healthy: false})
 	}
 
+	return c.common.PrepareStart(ctx, settings)
+}
+
+func (c *wsClient) Start(ctx context.Context, settings types.StartSettings) error {
 	// Prepare connection settings.
 	c.dialer = *websocket.DefaultDialer
 
@@ -117,49 +124,49 @@ func (c *wsClient) Stop(ctx context.Context) error {
 	return c.common.Stop(ctx)
 }
 
-func (c *wsClient) AgentDescription() *protobufs.AgentDescription {
-	return c.common.AgentDescription()
+func (c *wsClient) AgentDescription(agentId types.InstanceUid) *protobufs.AgentDescription {
+	return c.common.AgentDescription(agentId)
 }
 
-func (c *wsClient) SetAgentDescription(descr *protobufs.AgentDescription) error {
-	return c.common.SetAgentDescription(descr)
+func (c *wsClient) SetAgentDescription(agentId types.InstanceUid, descr *protobufs.AgentDescription) error {
+	return c.common.SetAgentDescription(agentId, descr)
 }
 
-func (c *wsClient) RequestConnectionSettings(request *protobufs.ConnectionSettingsRequest) error {
-	return c.common.RequestConnectionSettings(request)
+func (c *wsClient) RequestConnectionSettings(agentId types.InstanceUid, request *protobufs.ConnectionSettingsRequest) error {
+	return c.common.RequestConnectionSettings(agentId, request)
 }
 
-func (c *wsClient) SetHealth(health *protobufs.ComponentHealth) error {
-	return c.common.SetHealth(health)
+func (c *wsClient) SetHealth(agentId types.InstanceUid, health *protobufs.ComponentHealth) error {
+	return c.common.SetHealth(agentId, health)
 }
 
-func (c *wsClient) UpdateEffectiveConfig(ctx context.Context) error {
-	return c.common.UpdateEffectiveConfig(ctx)
+func (c *wsClient) UpdateEffectiveConfig(agentId types.InstanceUid, ctx context.Context) error {
+	return c.common.UpdateEffectiveConfig(agentId, ctx)
 }
 
-func (c *wsClient) SetRemoteConfigStatus(status *protobufs.RemoteConfigStatus) error {
-	return c.common.SetRemoteConfigStatus(status)
+func (c *wsClient) SetRemoteConfigStatus(agentId types.InstanceUid, status *protobufs.RemoteConfigStatus) error {
+	return c.common.SetRemoteConfigStatus(agentId, status)
 }
 
-func (c *wsClient) SetPackageStatuses(statuses *protobufs.PackageStatuses) error {
-	return c.common.SetPackageStatuses(statuses)
+func (c *wsClient) SetPackageStatuses(agentId types.InstanceUid, statuses *protobufs.PackageStatuses) error {
+	return c.common.SetPackageStatuses(agentId, statuses)
 }
 
-func (c *wsClient) SetCustomCapabilities(customCapabilities *protobufs.CustomCapabilities) error {
-	return c.common.SetCustomCapabilities(customCapabilities)
+func (c *wsClient) SetCustomCapabilities(agentId types.InstanceUid, customCapabilities *protobufs.CustomCapabilities) error {
+	return c.common.SetCustomCapabilities(agentId, customCapabilities)
 }
 
-func (c *wsClient) SetFlags(flags protobufs.AgentToServerFlags) {
-	c.common.SetFlags(flags)
+func (c *wsClient) SetFlags(agentId types.InstanceUid, flags protobufs.AgentToServerFlags) {
+	c.common.SetFlags(agentId, flags)
 }
 
-func (c *wsClient) SendCustomMessage(message *protobufs.CustomMessage) (messageSendingChannel chan struct{}, err error) {
-	return c.common.SendCustomMessage(message)
+func (c *wsClient) SendCustomMessage(agentId types.InstanceUid, message *protobufs.CustomMessage) (messageSendingChannel chan struct{}, err error) {
+	return c.common.SendCustomMessage(agentId, message)
 }
 
 // SetAvailableComponents implements OpAMPClient.SetAvailableComponents
-func (c *wsClient) SetAvailableComponents(components *protobufs.AvailableComponents) error {
-	return c.common.SetAvailableComponents(components)
+func (c *wsClient) SetAvailableComponents(agentId types.InstanceUid, components *protobufs.AvailableComponents) error {
+	return c.common.SetAvailableComponents(agentId, components)
 }
 
 func viaReq(resps []*http.Response) []*http.Request {
@@ -348,57 +355,62 @@ func (c *wsClient) runOneCycle(ctx context.Context) {
 
 	// Connected successfully. Start the sender. This will also send the first
 	// status report.
-	if err := c.sender.Start(senderCtx, c.conn); err != nil {
-		c.common.Logger.Errorf(senderCtx, "Failed to send first status report: %v", err)
-		// We could not send the report, the only thing we can do is start over.
-		return
+	for _, sender := range c.senders {
+		if err := sender.Start(senderCtx, c.conn); err != nil {
+			c.common.Logger.Errorf(senderCtx, "Failed to send first status report: %v", err)
+			return
+		}
 	}
-
-	// First status report sent. Now loop to receive and process messages.
-	r := internal.NewWSReceiver(
-		c.common.Logger,
-		c.common.Callbacks,
-		c.conn,
-		c.sender,
-		&c.common.ClientSyncedState,
-		c.common.PackagesStateProvider,
-		c.common.Capabilities,
-		&c.common.PackageSyncMutex,
-	)
 
 	// When the wsclient is closed, the context passed to runOneCycle will be canceled.
 	// The receiver should keep running and processing messages
 	// until it received a Close message from the server which means the server has no more messages.
 	receiverCtx, stopReceiver := context.WithCancel(context.Background())
 	defer stopReceiver()
-	r.Start(receiverCtx)
 
-	select {
-	case <-c.sender.IsStopped():
-		// sender will send close message to initiate the close handshake
-		if err := c.sender.StoppingErr(); err != nil {
-			c.common.Logger.Debugf(ctx, "Error stopping the sender: %v", err)
+	// First status report sent. Now loop to receive and process messages.
+	// var receivers []*internal.WSReceiver
+	for id, sender := range c.senders {
+		r := internal.NewWSReceiver(
+			c.common.Logger,
+			c.common.Callbacks,
+			c.conn,
+			sender,
+			&c.common.Agents[id].ClientSyncedState,
+			c.common.Agents[id].PackagesStateProvider,
+			c.common.Agents[id].Capabilities,
+			&c.common.PackageSyncMutex,
+		)
+		r.Start(receiverCtx)
+		go func() {
+			select {
+			case <-sender.IsStopped():
+				// sender will send close message to initiate the close handshake
+				if err := sender.StoppingErr(); err != nil {
+					c.common.Logger.Debugf(ctx, "Error stopping the sender: %v", err)
 
-			stopReceiver()
-			<-r.IsStopped()
-			break
-		}
+					stopReceiver()
+					<-r.IsStopped()
+					break
+				}
 
-		c.common.Logger.Debugf(ctx, "Waiting for receiver to stop.")
-		select {
-		case <-r.IsStopped():
-			c.common.Logger.Debugf(ctx, "Receiver stopped.")
-		case <-time.After(c.connShutdownTimeout):
-			c.common.Logger.Debugf(ctx, "Timeout waiting for receiver to stop.")
-			stopReceiver()
-			<-r.IsStopped()
-		}
-	case <-r.IsStopped():
-		// If we exited receiverLoop it means there is a connection error, we cannot
-		// read messages anymore. We need to start over.
+				c.common.Logger.Debugf(ctx, "Waiting for receiver to stop.")
+				select {
+				case <-r.IsStopped():
+					c.common.Logger.Debugf(ctx, "Receiver stopped.")
+				case <-time.After(c.connShutdownTimeout):
+					c.common.Logger.Debugf(ctx, "Timeout waiting for receiver to stop.")
+					stopReceiver()
+					<-r.IsStopped()
+				}
+			case <-r.IsStopped():
+				// If we exited receiverLoop it means there is a connection error, we cannot
+				// read messages anymore. We need to start over.
 
-		stopSender()
-		<-c.sender.IsStopped()
+				stopSender()
+				<-sender.IsStopped()
+			}
+		}()
 	}
 }
 

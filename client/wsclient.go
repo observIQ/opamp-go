@@ -65,6 +65,7 @@ func NewWebSocket(logger types.Logger) *wsClient {
 	w := &wsClient{
 		common:              internal.NewClientCommon(logger),
 		connShutdownTimeout: defaultShutdownTimeout,
+		senders:             make(map[types.InstanceUid]*internal.WSSender),
 	}
 	return w
 }

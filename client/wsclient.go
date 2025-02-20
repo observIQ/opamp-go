@@ -374,58 +374,61 @@ func (c *wsClient) runOneCycle(ctx context.Context) {
 		}
 	}
 
-	// When the wsclient is closed, the context passed to runOneCycle will be canceled.
-	// The receiver should keep running and processing messages
-	// until it received a Close message from the server which means the server has no more messages.
-	receiverCtx, stopReceiver := context.WithCancel(context.Background())
-	defer stopReceiver()
+	wg := sync.WaitGroup{}
 
 	// First status report sent. Now loop to receive and process messages.
 	// var receivers []*internal.WSReceiver
 	for id, sender := range c.senders {
-		r := internal.NewWSReceiver(
-			c.common.Logger,
-			c.common.Callbacks,
-			c.conn,
-			sender,
-			&c.common.Agents[id].ClientSyncedState,
-			c.common.Agents[id].PackagesStateProvider,
-			c.common.Agents[id].Capabilities,
-			&c.common.PackageSyncMutex,
-		)
-		r.Start(receiverCtx)
-		go func() {
-			for {
-				select {
-				case <-sender.IsStopped():
-					// sender will send close message to initiate the close handshake
-					if err := sender.StoppingErr(); err != nil {
-						c.common.Logger.Debugf(ctx, "Error stopping the sender: %v", err)
+		wg.Add(1)
+		go func(id types.InstanceUid, sender *internal.WSSender, wg *sync.WaitGroup) {
+			defer wg.Done()
+			// When the wsclient is closed, the context passed to runOneCycle will be canceled.
+			// The receiver should keep running and processing messages
+			// until it received a Close message from the server which means the server has no more messages.
+			receiverCtx, stopReceiver := context.WithCancel(context.Background())
+			defer stopReceiver()
 
-						stopReceiver()
-						<-r.IsStopped()
-						break
-					}
+			r := internal.NewWSReceiver(
+				c.common.Logger,
+				c.common.Callbacks,
+				c.conn,
+				sender,
+				&c.common.Agents[id].ClientSyncedState,
+				c.common.Agents[id].PackagesStateProvider,
+				c.common.Agents[id].Capabilities,
+				&c.common.PackageSyncMutex,
+			)
+			r.Start(receiverCtx)
+			select {
+			case <-sender.IsStopped():
+				// sender will send close message to initiate the close handshake
+				if err := sender.StoppingErr(); err != nil {
+					c.common.Logger.Debugf(ctx, "Error stopping the sender: %v", err)
 
-					c.common.Logger.Debugf(ctx, "Waiting for receiver to stop.")
-					select {
-					case <-r.IsStopped():
-						c.common.Logger.Debugf(ctx, "Receiver stopped.")
-					case <-time.After(c.connShutdownTimeout):
-						c.common.Logger.Debugf(ctx, "Timeout waiting for receiver to stop.")
-						stopReceiver()
-						<-r.IsStopped()
-					}
-				case <-r.IsStopped():
-					// If we exited receiverLoop it means there is a connection error, we cannot
-					// read messages anymore. We need to start over.
-
-					stopSenders[id]()
-					<-sender.IsStopped()
+					stopReceiver()
+					<-r.IsStopped()
+					break
 				}
+
+				c.common.Logger.Debugf(ctx, "Waiting for receiver to stop.")
+				select {
+				case <-r.IsStopped():
+					c.common.Logger.Debugf(ctx, "Receiver stopped.")
+				case <-time.After(c.connShutdownTimeout):
+					c.common.Logger.Debugf(ctx, "Timeout waiting for receiver to stop.")
+					stopReceiver()
+					<-r.IsStopped()
+				}
+			case <-r.IsStopped():
+				// If we exited receiverLoop it means there is a connection error, we cannot
+				// read messages anymore. We need to start over.
+
+				stopSenders[id]()
+				<-sender.IsStopped()
 			}
-		}()
+		}(id, sender, &wg)
 	}
+	wg.Wait()
 }
 
 func (c *wsClient) runUntilStopped(ctx context.Context) {

@@ -123,6 +123,7 @@ out:
 			s.sendNextMessage(ctx)
 
 		case <-ctx.Done():
+			s.logger.Debugf(ctx, "Stopping sender %w", ctx.Err())
 			if err := s.sendCloseMessage(); err != nil && err != websocket.ErrCloseSent {
 				s.err = err
 			}

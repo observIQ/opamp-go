@@ -356,13 +356,18 @@ func (c *wsClient) runOneCycle(ctx context.Context) {
 		return
 	}
 
-	// Create a cancellable context for background processors.
-	senderCtx, stopSender := context.WithCancel(ctx)
-	defer stopSender()
+	// Create a slice to hold all the cancel functions
+	stopSenders := make(map[types.InstanceUid]context.CancelFunc)
+	defer func() {
+		// Stop all senders when the function returns
+		for _, stop := range stopSenders {
+			stop()
+		}
+	}()
 
-	// Connected successfully. Start the sender. This will also send the first
-	// status report.
-	for _, sender := range c.senders {
+	for id, sender := range c.senders {
+		senderCtx, stopSender := context.WithCancel(ctx)
+		stopSenders[id] = stopSender
 		if err := sender.Start(senderCtx, c.conn); err != nil {
 			c.common.Logger.Errorf(senderCtx, "Failed to send first status report: %v", err)
 			return
@@ -390,32 +395,34 @@ func (c *wsClient) runOneCycle(ctx context.Context) {
 		)
 		r.Start(receiverCtx)
 		go func() {
-			select {
-			case <-sender.IsStopped():
-				// sender will send close message to initiate the close handshake
-				if err := sender.StoppingErr(); err != nil {
-					c.common.Logger.Debugf(ctx, "Error stopping the sender: %v", err)
-
-					stopReceiver()
-					<-r.IsStopped()
-					break
-				}
-
-				c.common.Logger.Debugf(ctx, "Waiting for receiver to stop.")
+			for {
 				select {
-				case <-r.IsStopped():
-					c.common.Logger.Debugf(ctx, "Receiver stopped.")
-				case <-time.After(c.connShutdownTimeout):
-					c.common.Logger.Debugf(ctx, "Timeout waiting for receiver to stop.")
-					stopReceiver()
-					<-r.IsStopped()
-				}
-			case <-r.IsStopped():
-				// If we exited receiverLoop it means there is a connection error, we cannot
-				// read messages anymore. We need to start over.
+				case <-sender.IsStopped():
+					// sender will send close message to initiate the close handshake
+					if err := sender.StoppingErr(); err != nil {
+						c.common.Logger.Debugf(ctx, "Error stopping the sender: %v", err)
 
-				stopSender()
-				<-sender.IsStopped()
+						stopReceiver()
+						<-r.IsStopped()
+						break
+					}
+
+					c.common.Logger.Debugf(ctx, "Waiting for receiver to stop.")
+					select {
+					case <-r.IsStopped():
+						c.common.Logger.Debugf(ctx, "Receiver stopped.")
+					case <-time.After(c.connShutdownTimeout):
+						c.common.Logger.Debugf(ctx, "Timeout waiting for receiver to stop.")
+						stopReceiver()
+						<-r.IsStopped()
+					}
+				case <-r.IsStopped():
+					// If we exited receiverLoop it means there is a connection error, we cannot
+					// read messages anymore. We need to start over.
+
+					stopSenders[id]()
+					<-sender.IsStopped()
+				}
 			}
 		}()
 	}

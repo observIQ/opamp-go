@@ -9,6 +9,7 @@ import (
 
 // MessageData represents a message received from the server and handled by Callbacks.
 type MessageData struct {
+	InstanceUid InstanceUid
 	// RemoteConfig is offered by the Server. The Agent must process it and call
 	// OpAMPClient.SetRemoteConfigStatus to indicate success or failure. If the
 	// effective config has changed as a result of processing the Agent must also call
